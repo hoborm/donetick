@@ -241,6 +241,7 @@ func newServer(lc fx.Lifecycle, cfg *config.Config, db *gorm.DB, notifier *notif
 
 	r := gin.New()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.Static("/assets/profiles", "./frontend/dist/assets/profiles") //TODO: this is not ideal, move it to a static file server
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler:      r,
@@ -281,7 +282,6 @@ func newServer(lc fx.Lifecycle, cfg *config.Config, db *gorm.DB, notifier *notif
 	// Expose headers that the frontend might need
 	config.AddExposeHeaders("Content-Type")
 	r.Use(cors.New(config))
-
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			if cfg.Database.Migration {
