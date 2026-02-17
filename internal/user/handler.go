@@ -580,7 +580,12 @@ func (h *Handler) thirdPartyAuthCallback(c *gin.Context) {
 		logger.Infow("account.handler.thirdPartyAuthCallback (oauth2) attempting to exchange code", "codeLength", len(req.Code), "redirectURI", req.RedirectURI)
 
 		// Pass the redirect URI from the request if provided, otherwise use config default
-		token, err := h.identityProvider.ExchangeToken(c, req.Code, req.RedirectURI)
+		string token, error err
+		if h.identityProvider != nil {
+			token, err := h.identityProvider.ExchangeToken(c, req.Code, req.RedirectURI)
+		}else{
+		err = "Identity provider is not set up."
+		}
 
 		if err != nil {
 			logger.Errorw("account.handler.thirdPartyAuthCallback (oauth2) failed to exchange token", "err", err, "code", req.Code[:min(len(req.Code), 10)]+"...")

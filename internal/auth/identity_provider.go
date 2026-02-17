@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"donetick.com/core/config"
+	"donetick.com/core/logging"
 	"golang.org/x/oauth2"
 )
 
@@ -24,17 +25,21 @@ type IdentityProvider struct {
 	isEnabled bool
 }
 
-func NewIdentityProvider(cfg *config.Config) *IdentityProvider {
-	if cfg.OAuth2Config.ClientID == "" || cfg.OAuth2Config.ClientSecret == "" {
-		return &IdentityProvider{isEnabled: false}
+func NewIdentityProvider(cfg *config.Config, c context.Context) *IdentityProvider {
+	var configErrors = ValidateConfig(&cfg.OAuth2Config)
+	log := logging.FromContext(c)
+
+	if configErrors != nil {
+		log.Debug(configErrors)
+		return nil
 	}
 	return &IdentityProvider{config: &cfg.OAuth2Config, isEnabled: true}
 }
 
 func (i *IdentityProvider) ExchangeToken(ctx context.Context, code string, redirectURL string) (string, error) {
-	if !i.isEnabled {
-		return "", errors.New("identity provider is not enabled")
-	}
+	// if !i.isEnabled {
+	// 	return "", errors.New("identity provider is not enabled")
+	// }
 
 	if code == "" {
 		return "", errors.New("authorization code is empty")
@@ -136,4 +141,13 @@ func isPictureURLValid(url string) bool {
 
 	contentType := resp.Header.Get("Content-Type")
 	return strings.HasPrefix(contentType, "image/")
+}
+
+func ValidateConfig(cfg *config.OAuth2Config) error {
+
+	if cfg.AuthURL == "" || cfg.ClientID == "" || cfg.ClientSecret == "" || cfg.Name == "" || len(cfg.Scopes) == 0 || cfg.TokenURL == "" || cfg.UserInfoURL == "" {
+		return errors.New("Oauth2 cannot be set up, missing configuration values.")
+	} else {
+		return nil
+	}
 }
