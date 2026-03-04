@@ -55,10 +55,11 @@ func NewDatabase(cfg *config.Config) (*gorm.DB, error) {
 	gormConfig := gorm.Config{
 		Logger: newLogger,
 	}
+	timezone := time.Local.String()
 
 	switch cfg.Database.Type {
 	case "postgres":
-		dsn := fmt.Sprintf("host=%s port=%v user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai", cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name)
+		dsn := fmt.Sprintf("host=%s port=%v user=%s password=%s dbname=%s sslmode=disable TimeZone=%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, timezone)
 		for i := 0; i <= 30; i++ {
 			db, err = gorm.Open(postgres.Open(dsn), &gormConfig)
 			if err == nil {
